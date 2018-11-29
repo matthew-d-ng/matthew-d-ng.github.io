@@ -6,5 +6,5 @@
     {"id": "test5", "lines": 22, "churn": 50, "commits": 5},
     {"id": "test6", "lines": 22, "churn": 50, "commits": 5},
     {"id": "test7", "lines": 22, "churn": 50, "commits": 5},
-    {"id": "test8", "lines": 22, "churn": 50, "commits": 5},
+    {"id": "test8", "lines": 22, "churn": 50, "commits": 5}
 ]
