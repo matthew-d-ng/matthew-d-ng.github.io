@@ -1,9 +1,10 @@
 [
-    {"id": "test1"},
-    {"id": "test2"},
-    {"id": "test3"},
-    {"id": "test4"},
-    {"id": "test5"},
-    {"id": "test6"},
-    {"id": "test7"}
+    {"id": "test1", "lines": 22, "churn": 50, "commits": 5},
+    {"id": "test2", "lines": 22, "churn": 50, "commits": 5},
+    {"id": "test3", "lines": 22, "churn": 50, "commits": 5},
+    {"id": "test4", "lines": 22, "churn": 50, "commits": 5},
+    {"id": "test5", "lines": 22, "churn": 50, "commits": 5},
+    {"id": "test6", "lines": 22, "churn": 50, "commits": 5},
+    {"id": "test7", "lines": 22, "churn": 50, "commits": 5},
+    {"id": "test8", "lines": 22, "churn": 50, "commits": 5},
 ]
