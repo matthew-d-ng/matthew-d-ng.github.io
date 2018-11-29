@@ -1,0 +1,9 @@
+[
+    {"source": "test1", "target": "test2"},
+    {"source": "test1", "target": "test3"},
+    {"source": "test1", "target": "test4"},
+    {"source": "test2", "target": "test5"},
+    {"source": "test2", "target": "test6"},
+    {"source": "test2", "target": "test7"},
+    {"source": "test6", "target": "test8"}
+]
