@@ -3,7 +3,7 @@
 <meta charset="utf-8" />
 
 <head>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
     <style>
         .links line {
             stroke: #999;
@@ -23,87 +23,139 @@
 
 <body>
     <script>
+        function circleSize(d) {
+            if (d.type == "dir") {
+                return 10;
+            }
+            else {
+                var size = d.lines;
+                if (size < 10) {
+                    return 10;
+                }
+                else {
+                    return size;
+                }
+            }
+        }
+
+        function circleColour(d) {
+            if (d.type == "dir") {
+                return "blue";
+            }
+            else {
+                return colours(d.commits);
+            }
+        }
+
+        function linkDistance(d) {
+            return 50;
+        }
+
+
+        var colours = d3.scaleQuantize()
+            .domain([0, 50])
+            .range(["#696969", "#808080", "#A9A9A9", "#C0C0C0", "#D3D3D3",
+                "#ffe5e5", "#ffb2b2", "#ff7f7f", "#ff4c4c", "#ff3232c", "#ff0000"]);
 
         //create somewhere to put the force directed graph
         var svg = d3.select("svg"),
             width = +svg.attr("width"),
             height = +svg.attr("height");
 
-        /*
-        var nodes_data = d3.json("https://matthew-d-ng.github.io/test_json.json")
 
-        var links_data = d3.json("https://matthew-d-ng.github.io/test_json_link.json")
-        */
-        var nodes_data = [
-            { "file": "test1", "commits": 10 },
-            { "file": "test2", "commits": 20 },
-            { "file": "test3", "commits": 40 },
-            { "file": "test4", "commits": 20 },
-            { "file": "test5", "commits": 4 },
-            { "file": "test6", "commits": 50 }
-        ]
+        d3.json("https://matthew-d-ng.github.io/files.json",
+            function (nerror, ndata) {
+                if (nerror)
+                    throw nerror;
+                var nodes_data = ndata;
 
-        var links_data = [
-            { "source": "test1", "target": "test2" },
-            { "source": "test1", "target": "test3" },
-            { "source": "test1", "target": "test5" },
-            { "source": "test2", "target": "test4" },
-            { "source": "test2", "target": "test6" }
-        ]
-        
+                d3.json("https://matthew-d-ng.github.io/links.json",
+                    function (lerror, ldata) {
+                        if (lerror)
+                            throw lerror;
 
+                        var links_data = ldata;
 
+                        var link = svg.append("g")
+                            .attr("class", "links")
+                            .selectAll("line")
+                            .data(links_data)
+                            .enter().append("line")
+                            .attr("stroke-width", function (d) { return Math.sqrt(d.value); });
 
-        var simulation = d3.forceSimulation()
-            .nodes(nodes_data);
+                        var node = svg.append("g")
+                            .attr("class", "nodes")
+                            .selectAll("g")
+                            .data(nodes_data)
+                            .enter()
+                            .append("g");
 
-        simulation
-            .force("charge_force", d3.forceManyBody())
-            .force("center_force", d3.forceCenter(width / 2, height / 2));
+                        var circle = node
+                            .append("circle")
+                            .attr("r", circleSize)
+                            .attr("fill", circleColour);
 
-        var node = svg.append("g")
-            .attr("class", "nodes")
-            .selectAll("circle")
-            .data(nodes_data)
-            .enter()
-            .append("circle")
-            .attr("r", 5)
-            .attr("fill", "red");
+                        var lables = node.append("text")
+                            .text(function (d) {
+                                return d.file;
+                            })
+                            .attr('x', 6)
+                            .attr('y', 3);
 
-        function tickActions() {
-            //update circle positions each tick of the simulation 
-            node
-                .attr("cx", function (d) { return d.x; })
-                .attr("cy", function (d) { return d.y; });
+                        node.append("title")
+                            .text(function (d) { return d.file; });
 
-            //update link positions 
-            //simply tells one end of the line to follow one node around
-            //and the other end of the line to follow the other node around
-            link
-                .attr("x1", function (d) { return d.source.x; })
-                .attr("y1", function (d) { return d.source.y; })
-                .attr("x2", function (d) { return d.target.x; })
-                .attr("y2", function (d) { return d.target.y; });
-        }
+                        function tickActions() {
 
-        simulation.on("tick", tickActions);
+                            node
+                                .attr("transform", function (d) {
+                                    return "translate(" + d.x + "," + d.y + ")";
+                                })
 
-        var link_force = d3.forceLink(links_data)
-            .id(function (d) { return d.file; })
+                            link
+                                .attr("x1", function (d) { return d.source.x; })
+                                .attr("y1", function (d) { return d.source.y; })
+                                .attr("x2", function (d) { return d.target.x; })
+                                .attr("y2", function (d) { return d.target.y; });
+                        }
 
-        simulation.force("links", link_force)
+                        var link_force = d3.forceLink(links_data)
+                            .id(function (d) { return d.file; })
+                            .distance(linkDistance)
+                            .strength(0.02);
 
-        var link = svg.append("g")
-            .attr("class", "links")
-            .selectAll("line")
-            .data(links_data)
-            .enter().append("line")
-            .attr("stroke-width", 2);
+                        var simulation = d3.forceSimulation()
+                            .nodes(nodes_data)
+                            .force("charge_force", d3.forceManyBody())
+                            .force("center_force", d3.forceCenter(width / 2, height / 2))
+                            .on("tick", tickActions)
+                            .force("links", link_force);
 
-        console.log("test")
-        console.log(nodes_data);
-        console.log(links_data);
+                        var drag_handler = d3.drag()
+                            .on("start", drag_start)
+                            .on("drag", drag_drag)
+                            .on("end", drag_end);
 
+                        function drag_start(d) {
+                            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+                            d.fx = d.x;
+                            d.fy = d.y;
+                        }
+
+                        function drag_drag(d) {
+                            d.fx = d3.event.x;
+                            d.fy = d3.event.y;
+                        }
+
+                        function drag_end(d) {
+                            if (!d3.event.active) simulation.alphaTarget(0);
+                            d.fx = null;
+                            d.fy = null;
+                        }
+
+                        drag_handler(node);
+                    });
+            });
     </script>
 </body>
 
